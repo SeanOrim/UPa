@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download ตารางเรียน by TAESOCOOL</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: lightskyblue;
+            color: #333;
+        }
+
+        h1 {
+            color: #555;
+        }
+
+        .dropdown-container {
+            margin: 20px auto;
+            display: inline-block;
+            position: relative;
+        }
+
+        .dropdown-container select {
+            appearance: none;
+            background-color: palevioletred;
+            border: 2px solid rgb(255, 84, 113);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dropdown-container select:hover {
+            border-color: rgb(255, 84, 113);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-container select:focus {
+            outline: none;
+            border-color: rgb(255, 84, 113);
+        }
+
+        #subcategoryContainer {
+            margin-top: 20px;
+        }
+
+        .image-container {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: palevioletred;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            position: relative;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            display: block;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .frame-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .button-container {
+            margin-top: 15px;
+        }
+
+        .download-button {
+            padding: 10px 10px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .download-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Download ตารางเรียน UP!</h1>
+
+    <!-- Dropdown for selecting grade -->
+    <div class="dropdown-container">
+        <label for="category">Select Grade:</label>
+        <select id="category" onchange="updateSubcategories()">
+            <option value="">Choose Grade</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
+    </div>
+
+    <!-- Dropdown for selecting class -->
+    <div id="subcategoryContainer">
+        <div class="dropdown-container">
+            <label for="subcategory">Select Class:</label>
+            <select id="subcategory" onchange="updateImage()">
+                <option value="">Choose Class</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Dropdown for selecting frame -->
+    <div class="dropdown-container">
+        <label for="frameSelect">Select Frame:</label>
+        <select id="frameSelect" onchange="applyFrame()">
+            <option value="">Choose Frame</option>
+            <option value="1">FLower</option>
+            <option value="2">Black and white</option>
+            <option value="3">Christmas</option>
+        </select>
+    </div>
+
+    <!-- Image container for displaying selected image and frame -->
+    <div class="image-container" id="imageContainer" style="display: none;">
+        <img id="selectedImage" loading="lazy" src="" alt="Selected Subcategory">
+        <div class="frame-overlay" id="frameOverlay" style="display: none;">
+            <img id="selectedFrame" loading="lazy" src="" alt="Selected Frame" style="width: 100%; height: 100%;"/>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js"></script>
+    <script>
+        // Cache for preloaded images
+        const imageCache = new Map();
+        
+        // Predefined image and frame URLs
+        const images = {
+            1: {
+                1: 'https://i.postimg.cc/QC5B8gp5/1.png',
+                2: 'https://i.postimg.cc/qq8RVJTx/2.png',
+                3: 'https://i.postimg.cc/brXJBGKv/3.png',
+                4: 'https://i.postimg.cc/cHtCh7kj/4.png',
+                5: 'https://i.postimg.cc/9XTzqp7w/5.png',
+                6: 'https://i.postimg.cc/3xLwHfPV/6.png',
+                7: 'https://i.postimg.cc/6Qg5826h/7.png',
+                8: 'https://i.postimg.cc/brjyR7tD/8.png',
+                9: 'https://i.postimg.cc/Twb2gdpv/9.png',
+                10: 'https://i.postimg.cc/Dynf4KhR/10.png',
+                11: 'https://i.postimg.cc/28Gk4X8y/11.png',
+                12: 'https://i.postimg.cc/rwp8gCKJ/12.png',
+                13: 'https://i.postimg.cc/HLcT1Y08/13.png',
+                14: 'https://i.postimg.cc/xdwn0wgx/14.png',
+                15: 'https://i.postimg.cc/hvrB1fn6/15.png',
+                16: 'https://i.postimg.cc/BZc40wFp/16.png'
+            },
+            2: {
+                1: 'https://i.postimg.cc/PrnctmZM/1.png',
+                2: 'https://i.postimg.cc/Qd0nkwz6/2.png',
+                3: 'https://i.postimg.cc/qqVmvTt7/3.png',
+                4: 'https://i.postimg.cc/3wqSzpYm/4.png',
+                5: 'https://i.postimg.cc/Zn8w9M3x/5.png',
+                6: 'https://i.postimg.cc/HsmZGTDZ/6.png',
+                7: 'https://i.postimg.cc/FsxPNwh9/7.png',
+                8: 'https://i.postimg.cc/YCqd98SQ/8.png',
+                9: 'https://i.postimg.cc/MpPdjRcN/9.png',
+                10: 'https://i.postimg.cc/FsGx2cxz/10.png',
+                11: 'https://i.postimg.cc/sgXJyXnc/11.png',
+                12: 'https://i.postimg.cc/LXztvZXH/12.png',
+                13: 'https://i.postimg.cc/L43k1fwD/13.png',
+                14: 'https://i.postimg.cc/rFhShT8t/14.png',
+                15: 'https://i.postimg.cc/BnX2kz67/15.png',
+                16: 'https://i.postimg.cc/RZywBTJS/16.png'
+            },
+            3: {
+                1: 'https://i.postimg.cc/BQGqdPnr/1.png',
+                2: 'https://i.postimg.cc/j2Yb0BtH/2.png',
+                3: 'https://i.postimg.cc/L6RpydyR/3.png',
+                4: 'https://i.postimg.cc/RCwmQCLX/4.png',
+                5: 'https://i.postimg.cc/MH08Wtph/5.png',
+                6: 'https://i.postimg.cc/3xxHTX5c/6.png',
+                7: 'https://i.postimg.cc/Hkv1srTs/7.png',
+                8: 'https://i.postimg.cc/yNwqc2JM/8.png',
+                9: 'https://i.postimg.cc/k5V3V75N/9.png',
+                10: 'https://i.postimg.cc/prHg18Jk/10.png',
+                11: 'https://i.postimg.cc/fW74S2MP/11.png',
+                12: 'https://i.postimg.cc/9Fc6ddMQ/12.png',
+                13: 'https://i.postimg.cc/PrKB2Cpz/13.png',
+                14: 'https://i.postimg.cc/W1Hxcx7d/14.png',
+                15: 'https://i.postimg.cc/FzNBxvhB/15.png',
+                16: 'https://i.postimg.cc/nzvW7rfm/16.png'
+            },
+            4: {
+                1:  'https://i.postimg.cc/RZQzCJkK/4-1.jpg',
+                2:  'https://i.postimg.cc/PxNGM3PQ/4-2.jpg',
+                3:  'https://i.postimg.cc/T1WZzKjy/4-3.jpg',
+                4:  'https://i.postimg.cc/0NVRDR2N/4-4.jpg',
+                5:  'https://i.postimg.cc/F152NhGT/4-5.jpg',
+                6:  'https://i.postimg.cc/1Rktf6jj/4-6.jpg',
+                7:  'https://i.postimg.cc/027Nmjg2/4-7.jpg',
+                8:  'https://i.postimg.cc/8zHPKYP2/4-8.jpg',
+                9:  'https://i.postimg.cc/K8F85bF7/4-9.jpg',
+                10: 'https://i.postimg.cc/PqVfh8DK/4-10.jpg',
+                11: 'https://i.postimg.cc/0Q6kN2dv/4-11.jpg',
+                12: 'https://i.postimg.cc/V63Y0QDC/4-12.jpg',
+                13: 'https://i.postimg.cc/6qnBdjm1/4-13.jpg',
+                14: 'https://i.postimg.cc/vHwYQy1R/4-14.jpg',
+                15: 'https://i.postimg.cc/Dz0FCyNG/4-15.jpg',
+                16: 'https://i.postimg.cc/HLNmF1Gh/4-16.jpg',
+                17: 'https://i.postimg.cc/QCG3xgdg/4-17.jpg',
+                18: 'https://i.postimg.cc/jqPT31MM/4-18.jpg',
+                19: 'https://i.postimg.cc/GhRCWjNd/4-19.jpg',
+                20: 'https://i.postimg.cc/nc1JpDb7/4-20.jpg',
+                21: 'https://i.postimg.cc/mg2GDgBn/4-21.jpg'
+            },
+            5: {
+                1:  'https://i.postimg.cc/25Hjm9JP/5-1.jpg',
+                2:  'https://i.postimg.cc/05K5RfCB/5-2.jpg',
+                3:  'https://i.postimg.cc/qv4pKdHP/5-3.jpg',
+                4:  'https://i.postimg.cc/Fsj91H8b/5-4.jpg',
+                5:  'https://i.postimg.cc/MKk6WQPK/5-5.jpg',
+                6:  'https://i.postimg.cc/3wbhz40h/5-6.jpg',
+                7:  'https://i.postimg.cc/hjkBPk03/5-7.jpg',
+                8:  'https://i.postimg.cc/cHgWWxfn/5-8.jpg',
+                9:  'https://i.postimg.cc/rFLT6LsD/5-9.jpg',
+                10: 'https://i.postimg.cc/VLB8mH0D/5-10.jpg',
+                11: 'https://i.postimg.cc/Z5bhRFrZ/5-11.jpg',
+                12: 'https://i.postimg.cc/3wW5j8Sc/5-12.jpg',
+                13: 'https://i.postimg.cc/wjwYsyVN/5-13.jpg',
+                14: 'https://i.postimg.cc/N0Vhp3Zf/5-14.jpg',
+                15: 'https://i.postimg.cc/QCQRNHCH/5-15.jpg',
+                16: 'https://i.postimg.cc/h4VF13sc/5-16.jpg',
+                17: 'https://i.postimg.cc/zXNstS2W/5-17.jpg',
+                18: 'https://i.postimg.cc/YSvZGXjc/5-18.jpg',
+                19: 'https://i.postimg.cc/VN2TjjbJ/5-19.jpg',
+                20: 'https://i.postimg.cc/3Rpq9dgn/5-20.jpg',
+                21: 'https://i.postimg.cc/6qfmJgbZ/5-21.jpg'
+            },
+            6: {
+                1:  'https://i.postimg.cc/MZdgGRWw/6-1.jpg',
+                2:  'https://i.postimg.cc/NfFS2MMH/6-2.jpg',
+                3:  'https://i.postimg.cc/zXQMCrbP/6-3.jpg',
+                4:  'https://i.postimg.cc/T3WsQ4n2/6-4.jpg',
+                5:  'https://i.postimg.cc/1zhjdrKG/6-5.jpg',
+                6:  'https://i.postimg.cc/g0VTbLMf/6-6.jpg',
+                7:  'https://i.postimg.cc/V64ZdQPg/6-7.jpg',
+                8:  'https://i.postimg.cc/G2bSL3V9/6-8.jpg',
+                9:  'https://i.postimg.cc/6q3jZj9X/6-9.jpg',
+                10: 'https://i.postimg.cc/x84s3vCb/6-10.jpg',
+                11: 'https://i.postimg.cc/jqgkTbXd/6-11.jpg',
+                12: 'https://i.postimg.cc/658b5mjV/6-12.jpg',
+                13: 'https://i.postimg.cc/BQRY8Bkr/6-13.jpg',
+                14: 'https://i.postimg.cc/kg8jWtdB/6-14.jpg',
+                15: 'https://i.postimg.cc/N0cdDfgb/6-15.jpg',
+                16: 'https://i.postimg.cc/ZRfjJ86D/6-16.jpg',
+                17: 'https://i.postimg.cc/wBQ0G8Mz/6-17.jpg',
+                18: 'https://i.postimg.cc/hj4pFyQd/6-18.jpg',
+                19: 'https://i.postimg.cc/vTchT4z8/6-19.jpg',
+                20: 'https://i.postimg.cc/WzCnksWG/6-20.jpg',
+                21: 'https://i.postimg.cc/qB5QYGJN/6-21.jpg'   
+            }
+        };
+        
+        const frames = {
+            1: 'https://i.postimg.cc/J0dSqv55/1.png',
+            2: 'https://i.postimg.cc/N06qcNQQ/2.png',
+            3: 'https://i.postimg.cc/prdgKRzd/image.png',
+        };
+
+        // Updates subcategories (classes) based on selected grade
+        function updateSubcategories() {
+            const grade = document.getElementById('category').value;
+            const subcategorySelect = document.getElementById('subcategory');
+            subcategorySelect.innerHTML = '<option value="">Choose Class</option>';
+
+            if (grade && images[grade]) {
+                Object.keys(images[grade]).forEach(subcat => {
+                    const option = document.createElement('option');
+                    option.value = subcat;
+                    option.textContent = subcat;
+                    subcategorySelect.appendChild(option);
+                });
+            }
+        }
+
+        // Updates image based on selected grade and class
+        function updateImage() {
+            const grade = document.getElementById('category').value;
+            const subcategory = document.getElementById('subcategory').value;
+            const imageContainer = document.getElementById('imageContainer');
+            const selectedImage = document.getElementById('selectedImage');
+
+            if (grade && subcategory && images[grade] && images[grade][subcategory]) {
+                const imageUrl = images[grade][subcategory];
+                
+                // Show loading state
+                imageContainer.style.display = 'block';
+                selectedImage.style.opacity = '0.5';
+                
+                // Check if image is cached
+                if (imageCache.has(imageUrl)) {
+                    selectedImage.src = imageUrl;
+                    selectedImage.style.opacity = '1';
+                } else {
+                    // Preload image
+                    const tempImage = new Image();
+                    tempImage.onload = function() {
+                        imageCache.set(imageUrl, true);
+                        selectedImage.src = imageUrl;
+                        selectedImage.style.opacity = '1';
+                    };
+                    tempImage.src = imageUrl;
+                }
+                
+                selectedImage.alt = `Class ${subcategory}`;
+            } else {
+                imageContainer.style.display = 'none';
+            }
+        }
+
+        // Preload images for the selected grade
+        function preloadImagesForGrade(grade) {
+            if (images[grade]) {
+                Object.values(images[grade]).forEach(imageUrl => {
+                    if (!imageCache.has(imageUrl)) {
+                        const tempImage = new Image();
+                        tempImage.onload = () => imageCache.set(imageUrl, true);
+                        tempImage.src = imageUrl;
+                    }
+                });
+            }
+        }
+
+        // Modify category change handler to preload images
+        document.getElementById('category').addEventListener('change', function() {
+            const grade = this.value;
+            if (grade) {
+                preloadImagesForGrade(grade);
+            }
+            updateSubcategories();
+        });
+
+        // Add download button to the DOM
+        const downloadButton = document.createElement('button');
+        downloadButton.id = 'download';
+        downloadButton.className = 'download-button';
+        downloadButton.textContent = 'Download Image with Frame';
+        downloadButton.disabled = true;
+        document.body.appendChild(downloadButton);
+
+        // Handle the download button click
+        document.getElementById('download').addEventListener('click', function() {
+            const selectedImage = document.querySelector('.image-container img');
+            const selectedFrame = document.querySelector('.frame-overlay img');
+
+            if (!selectedImage || !selectedImage.src || !selectedFrame || !selectedFrame.src) {
+                alert('Please select both an image and a frame first');
+                return;
+            }
+
+            // Wait for the image to be fully loaded
+            const frameImage = new Image();
+            frameImage.crossOrigin = "anonymous";
+            frameImage.onload = function() {
+                // Create a canvas to draw the image and frame together
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas dimensions
+                canvas.width = frameImage.naturalWidth;
+                canvas.height = frameImage.naturalHeight;
+                
+                // Draw the image first
+                ctx.drawImage(frameImage, 0, 0);
+                
+                // Create and load the frame image
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = function() {
+                    // Draw the frame on top of the image
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    // Create a downloadable link
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.href = dataUrl;
+                    link.download = 'timetable-with-frame.png';
+                    link.click();
+                };
+                img.src = selectedImage.src;
+            };
+            frameImage.src = selectedFrame.src;
+        });
+
+        function applyFrame() {
+            const frameSelect = document.getElementById('frameSelect');
+            const selectedFrame = document.getElementById('selectedFrame');
+            const frameOverlay = document.getElementById('frameOverlay');
+            const selectedImage = document.querySelector('.image-container img');
+            
+            const frameId = frameSelect.value;
+            if (frameId && frames[frameId]) {
+                selectedFrame.src = frames[frameId];
+                frameOverlay.style.display = 'block';
+
+                // Wait for both image and frame to load
+                selectedFrame.onload = () => {
+                    if (selectedImage) {
+                        // Add padding to frame size to make it slightly larger than the image
+                        selectedFrame.style.width = (selectedImage.offsetWidth + 40) + 'px';
+                        selectedFrame.style.height = (selectedImage.offsetHeight + 40) + 'px';
+                    }
+                    document.getElementById('download').disabled = false;
+                };
+            } else {
+                frameOverlay.style.display = 'none';
+                document.getElementById('download').disabled = true;
+            }
+        }
+    </script>
+</body>
+</html>
